@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>猫の健康管理</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1,
+        h2 {
+            text-align: center;
+        }
+
+        form {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        form label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        form input[type="date"],
+        form input[type="text"] {
+            width: calc(100% - 12px);
+            padding: 8px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        form button[type="submit"] {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        form button[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        a {
+            display: block;
+            text-align: center;
+            margin-bottom: 20px;
+            text-decoration: none;
+            color: #007bff;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>猫の健康管理 - ID: {{ cat_id }}</h1>
+    <form id="healthForm" action="/add_health_entry" method="post">
+        <label for="date">日付:</label>
+        <input type="date" id="date" name="date" required><br>
+
+        <label for="weight">体重:</label>
+        <input type="text" id="weight" name="weight" required><br>
+
+        <label for="food_intake">餌の摂取量:</label>
+        <input type="text" id="food_intake" name="food_intake" required><br>
+
+        <label for="excretion">排泄量:</label>
+        <input type="text" id="excretion" name="excretion" required><br>
+
+        <label for="exercise">運動量:</label>
+        <input type="text" id="exercise" name="exercise" required><br>
+
+        <label for="remarks">備考:</label>
+        <input type="text" id="remarks" name="remarks"><br>
+
+        <!-- ID を隠しフィールドとして追加 -->
+        <input type="hidden" id="cat_id" name="id" value="{{ cat_id }}">
+
+        <button type="submit">追加</button>
+    </form>
+
+    <a href="/">戻る</a>
+
+    <h2>入力一覧</h2>
+    <ul id="healthList"></ul>
+
+    <script>
+        document.getElementById("healthForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            const formData = new FormData(document.getElementById("healthForm"));
+            formData.append("id", "{{ cat_id }}");
+
+            const jsonData = {};
+            formData.forEach((value, key) => {
+                jsonData[key] = value;
+            });
+
+            fetch("https://sheetdb.io/api/v1/3q64amcttgfit", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(jsonData)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert("情報が追加されました。");
+                        location.reload();
+                    } else {
+                        alert("情報の追加に失敗しました。");
+                    }
+                })
+                .catch(error => console.error("Error:", error));
+        });
+
+        fetch("https://sheetdb.io/api/v1/3q64amcttgfit")
+            .then(response => response.json())
+            .then(data => {
+                const healthList = document.getElementById("healthList");
+                healthList.innerHTML = "";
+                data.forEach(entry => {
+                    const listItem = document.createElement("li");
+                    listItem.textContent = `日付: ${entry.date}, 体重: ${entry.weight}, 餌の摂取量: ${entry.food_intake}, 排泄量: ${entry.excretion}, 運動量: ${entry.exercise}, 備考: ${entry.remarks}`;
+                    healthList.appendChild(listItem);
+                });
+            })
+            .catch(error => console.error("Error:", error));
+
+    </script>
+
+</body>
+
+</html>

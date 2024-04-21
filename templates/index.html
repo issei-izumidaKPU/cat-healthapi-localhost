@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>猫の健康管理</title>
+</head>
+<style>
+    body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+h1 {
+    text-align: center;
+}
+form {
+    margin-bottom: 20px;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    max-width: 400px;
+    margin: 0 auto;
+}
+form label {
+    display: block;
+    margin-bottom: 10px;
+}
+form input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+}
+form button {
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+form button:hover {
+    background-color: #45a049;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+table, th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+th {
+    background-color: #f2f2f2;
+}
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+tr:hover {
+    background-color: #ddd;
+}
+td button, td a {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    background-color: #007bff;
+    color: white;
+}
+td button:hover, td a:hover {
+    background-color: #0056b3;
+}
+</style>
+<body>
+    <h1>猫の登録</h1>
+    <form id="catForm" action="/add_cat" method="post">
+        <label for="name">名前:</label>
+        <input type="text" id="name" name="name" required>
+        <label for="gender">性別:</label>
+        <input type="text" id="gender" name="gender" required>
+        <label for="age">年齢:</label>
+        <input type="text" id="age" name="age" required>
+        <label for="breed">猫種:</label>
+        <input type="text" id="breed" name="breed" required>       
+        <button type="submit">登録</button>
+    </form>
+    <h1>猫一覧</h1>
+    <table border="1">
+        <tr>
+            <th>名前</th>
+            <th>性別</th>
+            <th>年齢</th>
+            <th>猫種</th>
+            <th>操作</th>
+            <th>管理</th>
+        </tr>
+        {% for cat in cats %}
+            <tr>
+                <td>{{ cat["名前"] }}</td>
+                <td>{{ cat["性別"] }}</td>
+                <td>{{ cat["年齢"] }}才</td>
+                <td>{{ cat["猫種"] }}</td>
+                <td><button onclick="deleteCat('{{ cat["id"] }}')">削除</button></td>
+                <td><a href="/cat_health/{{ cat['id'] }}">管理</a></td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <script>
+        function deleteCat(id) {
+            if (confirm("本当にこの猫の情報を削除しますか？")) {
+                fetch("/delete_cat/" + id, {
+                    method: "DELETE"
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert("猫の情報が削除されました。");
+                        location.reload();
+                    } else {
+                        alert("削除に失敗しました。");
+                    }
+                })
+                .catch(error => console.error("Error:", error));
+            }
+        }
+        // フォームの送信後、ページをリロードする
+        document.getElementById("catForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            fetch("/add_cat", {
+                method: "POST",
+                body: new FormData(document.getElementById("catForm"))
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                location.reload();
+            })
+            .catch(error => console.error("Error:", error));
+        });
+    </script>
+</body>
+</html>
